@@ -92,13 +92,13 @@ int recv_raw_packet(int sd, uint8_t *buf, size_t len)
     perror("sendmsg");
     return -1;
   }
-
-	/* Copy the src_addr of the current frame to the global dst_addr
-	 * We need that address as a dst_addr for the next frames we're going to send
-	*/
-  memcpy(dst_addr,frame_hdr.dst_addr, 6);
+/*
+ * Copy the src_addr of the current frame to the global dst_addr
+ * We need that address as a dst_addr for the next frames we're going to send from the server
+ */
+  memcpy(dst_addr,frame_hdr.src_addr, 6);
 	
-	return rc;
+  return rc;
 }
 
 /*
