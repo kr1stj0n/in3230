@@ -132,7 +132,7 @@ void client(void)
 			close(sd);
 			exit(EXIT_FAILURE);
 		}
-	} while(1);
+	} while (1);
 
 	return;
 }
@@ -146,11 +146,10 @@ void handle_client(int sd, char *username)
 		memset(buf, 0, sizeof(buf));
 		rc = read(sd, buf, sizeof(buf));
 		if (rc <= 0) {
-			perror("read");
 			close(sd);
 			printf("%s left the chat...\n", username);
 			free(username);   /* Free the allocated memory to avoid memory leaks */
-			exit(-1);
+			exit(EXIT_FAILURE);
 		}
 		
 		printf("<%s>: %s\n", username, buf);
