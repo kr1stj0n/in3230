@@ -5,4 +5,4 @@ all:
 	$(CC) $(CFLAGS) main.c chat.c -o chat
 clean:
 	rm -f chat
-	rm -f server
+	rm -f server.socket

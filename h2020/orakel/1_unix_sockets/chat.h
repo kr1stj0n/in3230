@@ -1,9 +1,12 @@
+/*
+ * File: chat.h
+ */
+
 #ifndef _CHAT_H
 #define _CHAT_H
 
-#include <stdio.h>
-
-#define MAX_CONNS 5 /* the maximum length for the queue of pending connections */
+#define SOCKET_NAME "server.socket"
+#define MAX_CONNS 5 /* maximum length of the pending connections queue */
 
 void client(void);
 void server(void);

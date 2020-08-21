@@ -1,74 +1,111 @@
 /*
- * A multiclient - server chat application using UNIX sockets
- * chat.c source file
+ * File: chat.c
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
+#include <stdio.h>		/* standard input/output library functions */
+#include <stdlib.h>             /* standard library definitions (macros) */ 
+#include <unistd.h>             /* standard symbolic constants and types */
 
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <sys/un.h>
+#include <sys/socket.h>         /* sockets operations */
+#include <sys/un.h>             /* definitions for UNIX domain sockets */
 
 #include "chat.h"
 
-int debug = 0;
 
 void server(void)
 {
 	struct sockaddr_un addr;
-	int    sd, accept_sd;
+	int    sd, accept_sd, rc;
 	pid_t  child_pid;
 
 	printf("\n*** IN3230 Multiclient chat server is running! ***\n"
 	       "* Waiting for users to connect...\n");
 
-	/* Create socket */
-	if ((sd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
+	/* 1. Create local socket. */
+	sd = socket(AF_UNIX, SOCK_STREAM, 0); 
+	if (sd  == -1) {
 		perror("socket()");
 		exit(-1);
 	}
 
-	memset(&addr, 0, sizeof(addr));
-	addr.sun_family = AF_UNIX;
-	strncpy(addr.sun_path, "server", sizeof(addr.sun_path) - 1);
+	/*
+         * For portability clear the whole structure, since some
+         * implementations have additional (nonstandard) fields in
+         * the structure.
+         */
 
-	unlink("server");
+	memset(&addr, 0, sizeof(struct sockaddr_un));
+
+	/* 2. Bind socket to socket name. */
+
+	addr.sun_family = AF_UNIX;
+	strncpy(addr.sun_path, SOCKET_NAME, sizeof(addr.sun_path) - 1);
+
+	/* Unlink the socket so that we can reuse the program.
+	 * This is bad hack! Better solution with a lock file,
+	 * or signal handling.
+	 * Check https://gavv.github.io/articles/unix-socket-reuse
+	 */
+        unlink(SOCKET_NAME);
 	
-	/* Bind socket to the struct sockaddr_un addr */
-	if (bind(sd, (struct sockaddr *)&addr, sizeof(addr)) == -1) {
-		perror("bind()");
+	rc = bind(sd, (const struct sockaddr *)&addr, sizeof(addr));
+	if (rc == -1) {
+		perror("bind");
 		close(sd);
-		exit(-1);
+		exit(EXIT_FAILURE);
 	}
 
-	/* Put the socket in listening state... */
-	if (listen(sd, MAX_CONNS) == -1) {
+	/*
+         * 3. Prepare for accepting incomming connections.
+	 * The backlog size is set to MAX_CONNS.
+	 * So while one request is being processed other requests
+	 * can be waiting.
+         */
+
+	rc = listen(sd, MAX_CONNS);
+	if (rc == -1) {
     		perror("listen()");
 		close(sd);
-    		exit(-1);
+    		exit(EXIT_FAILURE);
 	}
 
 	while (1) {
-		/* Accept incoming connection */
-		if ((accept_sd = accept(sd, NULL, NULL)) == -1) {
-			perror("accept()");
+		/* Wait for incoming connection. */
+		accept_sd = accept(sd, NULL, NULL);
+		if (accept_sd == -1) {
+			perror("accept");
 			continue;
 		}
-		/* Create a new child process to handle the connection,
-		 * while the parent listens for new ones */
+
+		/*
+		 * At this point, accept() was sucessful.
+		 * Create a new child process to handle the connection,
+		 * while the parent listens for new ones.
+		 */
+
 		child_pid = fork();
 
 		if (child_pid < 0) {
-			perror("fork()");
-			exit(-1);
-		} else if (child_pid == 0) {     /* child process that will handle the new incomming connection */
-			close(sd);             /* the child closes the copy of the listening socket
-			                          that inheritated from the parent */
+			perror("fork");
+			exit(EXIT_FAILURE);
+		} else if (child_pid == 0) {
+			/* 
+			 * the child process that will handle connection
+			 * the child closes the copy of the listening socket
+			 * that inheritated from the parent
+			 */
+			close(sd);
 
+			/*
+			 * Allocate memory for the username that the user will
+			 * send to the server
+			 */
 			char *username = (char *)malloc(sizeof(char) * 8);
+			if (username == NULL) {
+				perror("malloc");
+				close(accept_sd);
+				exit(EXIT_FAILURE);
+			}
 
 			if (read(accept_sd, username, sizeof(username)) <= 0) {
 				perror("read");
@@ -83,7 +120,10 @@ void server(void)
 
 	close(sd);
 
-	return;
+	/* Unlink the socket. */
+        unlink(SOCKET_NAME);
+
+        exit(EXIT_SUCCESS);
 }
 
 
@@ -108,7 +148,7 @@ void client(void)
 
 	memset(&addr, 0, sizeof(addr));
 	addr.sun_family = AF_UNIX;
-	strncpy(addr.sun_path, "server", sizeof(addr.sun_path) - 1);
+	strncpy(addr.sun_path, SOCKET_NAME, sizeof(addr.sun_path) - 1);
 
 	rc = connect(sd, (struct sockaddr *)&addr, sizeof(addr));
 	if ( rc < 0) {
@@ -127,14 +167,13 @@ void client(void)
 	do {
 		memset(buf, 0, sizeof(buf));
 		fgets(buf, sizeof(buf), stdin);
-		if (write(sd, buf, strlen(buf) + 1) < 0) {
-			perror("write()");
+		rc = write(sd, buf, strlen(buf));
+		if (rc < 0) {
+			perror("write");
 			close(sd);
 			exit(EXIT_FAILURE);
 		}
 	} while (1);
-
-	return;
 }
 
 void handle_client(int sd, char *username)
@@ -148,8 +187,10 @@ void handle_client(int sd, char *username)
 		if (rc <= 0) {
 			close(sd);
 			printf("%s left the chat...\n", username);
-			free(username);   /* Free the allocated memory to avoid memory leaks */
-			exit(EXIT_FAILURE);
+		 	/* Free the allocated memory to avoid memory leaks */
+			free(username);
+			/* Only the child process exits here... */
+			exit(EXIT_FAILURE); 
 		}
 		
 		printf("<%s>: %s\n", username, buf);

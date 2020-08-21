@@ -1,3 +1,8 @@
+/*
+ * A multiclient - server chat application using UNIX sockets
+ * File: main.c
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -17,8 +22,8 @@ int main (int argc, char *argv[])
 				cflag = 1;
 				break;
         		default: /* '?' */
-            			printf("Usage: %s"
-				       "[-s] server mode"
+            			printf("Usage: %s "
+				       "[-s] server mode "
 				       "[-c] client mode\n", argv[0]);
             			exit(EXIT_FAILURE);
         	}
@@ -29,7 +34,7 @@ int main (int argc, char *argv[])
 	else if (cflag)
 		client();
 	else
-		printf("usage\n");
+		printf("wrong usage\n");
 
 	return 0;
 }
