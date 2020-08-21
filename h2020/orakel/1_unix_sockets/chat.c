@@ -3,8 +3,9 @@
  */
 
 #include <stdio.h>		/* standard input/output library functions */
-#include <stdlib.h>             /* standard library definitions (macros) */ 
+#include <stdlib.h>             /* standard library definitions (macros) */
 #include <unistd.h>             /* standard symbolic constants and types */
+#include <string.h>             /* string operations (strncpy, memset..) */
 
 #include <sys/socket.h>         /* sockets operations */
 #include <sys/un.h>             /* definitions for UNIX domain sockets */
