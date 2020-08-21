@@ -2,10 +2,19 @@
 #define QUEUE_H
 
 #include <sys/types.h>
+#include "list.h"
 
 #define MAX_QUEUE_SIZE 16
 
-struct  queue;
+struct queue_entry {
+    struct list_head next;
+    void *           data;
+};
+
+struct queue {
+    struct list_head head;
+    size_t           length;
+};
 
 struct  queue* queue_create(void);
 ssize_t queue_length(struct queue * q);
