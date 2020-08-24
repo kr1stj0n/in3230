@@ -5,4 +5,5 @@ all:
 
 clean:
 	rm -f queue
+	rm -rf queue.dSYM
 
