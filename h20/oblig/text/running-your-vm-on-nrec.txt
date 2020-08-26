@@ -1,0 +1,93 @@
+#  Running your VM on NREC
+
+In order for you to be able to solve the mandatory assignment and home exams,
+we have reserved resources for all students taking the course on
+[NREC](https://www.nrec.no). This is a cloud infrastructure platform delivered
+in collaboration between the universities of Oslo and Bergen.
+
+There is a quite comprehensive guide to using the service available
+[here](https://docs.nrec.no/), but in the interest of brevity here is a short
+step-by-step guide:
+
+## Access to NREC
+
+All students who registered in NREC and submitted our signup form have been
+granted access to the IN3230/4230 project. If you did not do this, or for
+whatever reason do not have access do the following:
+
+  1. Make sure you've completed the [NREC first-time sign in.](https://access.nrec.no/)
+  2. Send an email to [in3230@ifi.uio.no](mailto:in3230@ifi.uio.no?subject=NREC%20access) and request access.
+
+## Provisioning a VM instance running the IN3230/4230 image
+
+This is mostly the same as the official guide to [creating a Linux virtual
+machine](https://docs.nrec.no/create-virtual-machine.html), except that we
+will select a custom disk image.
+
+  1. Log into the [NREC dashboard](https://dashboard.nrec.no)
+  2. (Optional, but recommended for better performance) Select the "osl" region by clicking on "uio-ifi-in3230-4230-h20 bgo" in the upper left corner of the page. Otherwise your VM will be physically located in Bergen.
+  3. In the menu on the left, navigate to Project > Compute > Key Pairs.
+  4. If you already use an SSH key pair to log into e.g. the Ifi login server, pick "Import key pair" and paste in your **public** key. Usually you will find this at ~/.ssh/id_rsa.pub on a *NIX machine.
+  5. If you have never set up SSH key pairs, you can instead choose the "Create Key Pair" button. Follow the wizard and make sure to select "SSH key" in the  "Key type" dropdown. You will download the key pair and point your SSH client at it.
+  6. In the left-hand menu, navigate to Project > Compute > Instances.
+  7. Hit "Launch instance".
+  8. On the "Details" tab, name your VM instance something descriptive ( **include your username** ) and leave the rest as default.
+  9. On the "Source" tab, select "in3230-h20-master-v01 " from the list at the bottom (click the arrow icon to select).
+  10. On the "Flavor" tab, select "m1.small".
+  11. On the "Networks" tab, select "dualStack".
+  12. On the "Security groups" tab, you need to add at least the "Allow SSH" policy. Optionally you can add the "Allow ICMP" policy as well, this will let you ping your VM from the outside.
+  13. On the "Key Pair" tab, make sure your key pair is selected (it might be by default).
+  14. The rest of the options can be left in their default state. Click "Launch Instance" to provision the VM.
+  15. This can take a couple of minutes, wait until the instance state changes to "Running".
+  16. Your VM is now booting.
+  17. When the VM has finished booting, you should be able to access it via SSH: "ssh debian@<VM IP>". You will find the IP in the instance list.
+  18. When you've verified you can log in, you can access a remote desktop on the VM via VNC over SSH. See below.
+  19. Remember to keep backups of your work OFF the VM instance, and to shut it down if you are not using it for a while.
+
+### Important information
+
+The is no automatic backup service included as part of the NREC platform, so
+make sure to keep copies/backups stored **away from the VM instance**. You
+could for example version your code in Git and make sure to push it to some
+remote repository whenever you make changes. This is a good idea anyway.
+
+### Remote desktop access
+
+When your VM is up and running, you can access the graphical desktop remotely
+using VNC tunneled over an SSH connection. The VNC server is already set up
+for you on the VM.
+
+On your own machine, you will need some VNC client. There is usually one
+installed on most Linux distributions, check your application menu. A common
+client that is launched from the command line is xfreerdp, this is installed
+on Ifi machines. On Mac OS X, the installed-by-default Screen Sharing
+application is actually a VNC client. On Windows you can for example use
+[TightVNC](https://www.tightvnc.com/download.php). [RealVNC
+Viewer](https://www.realvnc.com/en/connect/download/viewer/windows/) can be
+run as a standalone EXE (without going through an installer), which should
+work fine on Ifi Windows lab machines.
+
+Because VNC is a very insecure protocol by itself (no encryption of either
+authentication or screen data), we will protect the session using an SSH
+tunnel. The VNC server will only accept connections from the local machine, so
+even if you create bad firewall rules nobody will be able to access it from
+the outside.
+
+On Linux or OS X, first set up the tunnel using this command:
+
+ssh -L 127.0.0.1:9999:127.0.0.1:5901 -NT debian@<VM IP>
+
+This sets up a TCP listener on your local machine, port 9999 (you can pick any
+unused port here), which will connect to TCP port 5901 (don't change this port
+number!) on the VM's loopback interface, which is where the VNC server is
+listening. The -NT options will cause the tunnel to persist until you kill SSH
+e.g. with CTRL+C.
+
+When the tunnel is set up (your terminal will appear to "hang"), you can
+connect to localhost:9999 using your VNC client. The password is _mininet_.
+Your desktop session will normally persist between VNC sessions as long as you
+don't reboot the VM.
+
+On Windows you will need to set up the tunnel using the PuTTY configuration
+interface. See [this guide](https://www.skyverge.com/blog/how-to-set-up-an-
+ssh-tunnel-with-putty/) for an example of doing that.

@@ -1,0 +1,278 @@
+#  Mandatory assignment
+
+## Formalities
+
+This assignment must be completed individually. The submission must be
+approved prior to submission of the Home Exam 1. To pass the submission must
+meet the requirements that are documented here, and you must be able to
+explain every aspect of your solution.
+
+## Prerequisites
+
+Having completed an introductory course on operating systems and networks,
+including basic C programming, such as
+[IN2140](https://www.uio.no/studier/emner/matnat/ifi/IN2140/) (or equivalent),
+is a mandatory prerequisite to taking this course. Should you be lacking such
+experience for whatever reason, it is your own responsibility to catch up to
+the competence level we expect our students to have. Make good use of the
+group and plenary sessions, we will review some relevant concepts there.
+
+## Task
+
+The main focus of the task is to build and test a very simple network stack.
+We will use a protocol called MIP, which stands for “Minimal Interconnection
+Protocol”. MIP is a minimal network layer protocol, created for IN3230, that
+has only the bare necessities in the header and avoids overhead, making it
+quick to process and minimizing latency.
+
+The programs you write will run on a virtual network managed by
+[_mininet_](http://mininet.org/) inside a virtual machine. You will have to
+write three programs: a _MIP daemon_ , a _ping server_ and a _ping client_.
+These are described in more details below.
+
+Finally, it is important to document your work, so you will be writing a
+_brief_ design document. You will also need to analyze some design choices we
+have made.
+
+### MIP daemon
+
+The MIP daemon implements the network layer in our stack. A single instance of
+the daemon is permanently active on every host participating in the network.
+
+#### MIP daemon components
+
+The MIP daemon is comprised of several components that implement different
+aspects required to provide the MIP network layer's services:
+
+  * The interface with the layer above. Conventionally this would be the transport layer, but for the time being we will connect applications directly above the MIP layer. This component is responsible for encapsulating the payload from the upper layer as a _Service Data Unit_ (SDU) in a MIP _datagram_ and populating the MIP header fields. The entirety of the MIP datagram, that is the headers combined with the SDU, is referred to as the MIP _Protocol Data Unit_ (PDU).
+  * The interface with the layer below, in this case the link layer. We will only concern ourselves with interfacing with an Ethernet link layer. This component must take care of framing the MIP PDU as an Ethernet frame.
+  * A MIP to physical address mapping service, the _MIP Address Resolution Protocol_ (MIP-ARP). Conceptually this is a protocol which resides _both_ directly above the network layer (being an application of sorts) as well as on the interface between MIP and the link layer (because it needs access to Ethernet address). Because of this somewhat odd layering placement and as it is so tightly integrated with the network layer we will implement it directly in the MIP daemon.
+
+Combined, these three components will enable the MIP daemon to provide a basic
+point-to-point networking service. In other words, directly connected
+neighbours can communicate with each other, but for now we will **not**
+provide any way to communicate across intermediate nodes (no multi-hop
+communication).
+
+#### MIP-ARP
+
+To be able to communicate across Ethernet, hosts need to know each other's
+Ethernet link layer addresses (MAC addresses).
+
+It would be highly impractical to force users to know these lower-layer
+details, therefore we need a way of automatically learning the mapping between
+MIP and MAC addresses. The MIP-ARP protocol provides this service and is
+specified in detail in the MIP specification linked below.
+
+These mappings are required for every outgoing transmission, so it would be
+rather inefficient to repeat such lookups for hosts we have looked up
+previously. Solve this by implementing a MIP-ARP cache table that stores
+recent lookup results.
+
+#### Implementation details
+
+We have specified the MIP and MIP-ARP protocols in an RFC-like document which
+you can [find here](/studier/emner/matnat/ifi/IN3230/h20/oblig/ispec-
+mip-2020-oblig.txt).
+
+The MIP daemon will listen on two sockets:
+
+  * a raw socket capturing Ethernet frames with a given Ethertype identifying MIP traffic: _ETH_P_MIP_ to be defined as _0x88B5_. The same socket is also used to transmit outbound traffic.
+  * a UNIX domain socket which functions as the interface with the upper layers.
+
+The protocol for communicating with upper layers is as follows:
+
+  * Whenever there is an SDU to be passed either up or down, this is sent as a message over the UNIX socket.
+  * The message format consists of: An 8 bit MIP address, which is either the sender or destination address when passing up/down, respectively. The rest of the message contains the payload (SDU).
+  * In this assignment, it is sufficient to use blocking socket calls when dealing with this interface socket. We do not support multiple upper layer processes for the time being.
+
+The user must configure the MIP daemon with an address uniquely identifiying
+the current host on the MIP network.
+
+Users must also provide a filesystem path indicating where the daemon should
+bind a UNIX domain socket, which will be used as the interface to the upper
+layer(s).
+
+If the user optionally passes a debug-mode flag on the command line, every
+communication should be logged to the console with at least the following
+status information:
+
+  * Source and destination Ethernet addresses
+  * Source and destination MIP addresses
+  * Current content of the MIP-ARP cache
+
+##### Command line argument specification
+
+    
+    
+    mip_daemon [-h] [-d] <socket_upper> <MIP address>
+
+Options:
+
+  * **-d** : enable debugging mode (prints out internal information and state)
+  * **-h** : prints help and exits the program
+
+Arguments:
+
+  * **socket_upper** : pathname of the UNIX socket used to interface with upper layers.
+  * **MIP address** : the MIP address to assign to this host
+
+### Ping server
+
+The ping server conceptually ought to reside in the application layer, but we
+will interface it directly with the network layer for now.
+
+This server will receive text messages via IPC from the local MIP daemon. It
+should print this text and send back a ping message with content “PONG: _<
+received message>_”.
+
+#### Command line argument specification
+
+    
+    
+    ping_server [-h] <socket_lower>
+
+Options:
+
+  * **-h** : prints help and exits the program
+
+Arguments:
+
+  * **socket_lower** : pathname of the socket that the MIP daemon uses to communicate with upper layers (MIP is a lower layer from the point of view of the ping application).
+
+### Ping client
+
+Akin to the ping server, the ping client is an application, but again we will
+attach it directly above the network layer.
+
+The ping client sends ping messages through the network layer. These message
+contain user-specified content and are addressed to some user-specified MIP
+address. Ping messages are built up in the following manner: "PING: _< user-
+specified message>_".
+
+Upon receiving a response, it prints the time between sending the message and
+obtaining the response. Outgoing requests can be correlated with their
+corresponding responses by matching the message echoed by the server in the
+"PONG" reply. Unknown messages can be ignored.
+
+The ping client sends a ping, and after receiving a response and printing the
+result it exits. If no response arrives within 1 second, the ping client
+should print “timeout” and exit.
+
+#### Command line argument specification
+
+    
+    
+    ping_client [-h] <destination_host> <message> <socket_lower>
+
+Options:
+
+  * **-h** : prints help and exits the program
+
+Arguments:
+
+  * **destination_host** : MIP address of the destination host
+  * **message** : the message that needs to be sent
+  * **socket_lower** : pathname of the socket that the MIP daemon uses to communicate with upper layers (MIP is a lower layer from the point of view of the ping application).
+
+## Example Scenario
+
+We have detailed an example scenario to help illustrate how everything is
+meant to work together [here](/studier/emner/matnat/ifi/IN3230/h20/oblig
+/example-scenario.html).
+
+## Development and test environment
+
+You will develop and test your implementation on a virtual machine image that
+we provide. The virtual machine will be hosted on the NREC cloud
+infastructure, for detailed information and instructions on using the virtual
+machine platform, [see here](/studier/emner/matnat/ifi/IN3230/h20/oblig
+/running-your-vm-on-nrec.html).
+
+**Please do not attempt to solve the assignment locally on your own machine or
+in any way which deviates from these instructions.**
+
+## Submission materials
+
+You must submit the following:
+
+  1. A _design document_ that contains: 
+    * A discussion of how MIP is different than IPv4, and how its performance compares to IPv4. One to two paragraphs.
+    * Discuss why we need to handle the MIP-ARP protocol as a special case. Discuss alternative design choices that would allow for a cleaner implementation. Two to three paragraphs.
+    * A flow chart summarizing the flow of execution on both the client and server side.
+  2. _Program code_ , where the code is well commented. Document all the variables and definitions. For each function in the program, you must document the following: 
+    * What the function does.
+    * What input and output parameters mean and how they are used.
+    * Which global variables affect the function.
+    * What the function returns.
+    * Other characteristics that are important to know about (eg. error situations).
+Example comment:
+
+    
+        /**
+     * Convert string to all-uppercase
+     * str: pointer to input string.
+     * dest: pointer to output buffer.
+     * The buffer pointed at by dest must be allocated
+     * and large enough to hold all of str.
+     *
+     * Returns the number of characters changed.
+     */
+    int to_upper(char *str, char **dest)
+    { ...
+
+## Submission requirements
+
+A **design document** edited using an appropriate tool, eg. LaTeX, Word, etc.
+The document should contain the items listed above, as well as a cover page
+where the following information is provided:
+
+_Name_ \- _username_ \- _date_ \- _course code_
+
+Before delivery, the document shall be converted to **PDF format**. Neither a
+Word / Works / Open Office / TeX - document nor a regular editor file (plain
+text) will be accepted.
+
+The **code** must consist of compilable C source files. We recommend including
+a Makefile for easy compilation.
+
+Your solution must compile and run on the provided virtual machine image,
+without requiring additional configuration.
+
+The scope of the design document need not necessarily be large, but must
+contain sufficient information to meet the requirements described under
+‘task’. The important thing is to document understanding of the relevant
+topics, in addition to the actual implementation.
+
+### Electronic submission
+
+All materials must be submitted electronically where all files (Makefile, *
+.c, * .h, readme.pdf, etc.) are collected in one directory using your UiO
+username as a filename. Create one compressed tar-ball containing that
+directory. Use the command:
+
+    
+    
+    tar -zcvf username.tgz username
+
+Deliver your submission through the [Devilry
+system](https://devilry.ifi.uio.no/). You may deliver as many times as you
+like before the deadline, we will only consider the latest submission.
+
+### Deadline
+
+**Wednesday 16 September 2019 by 23:59.**
+
+Remember that you cannot deliver a copy of answers from others, but must
+deliver your own original solution. The requirements for deliveries can be
+found at: <https://www.uio.no/studier/eksamen/obligatoriske-aktiviteter/mn-
+ifi-obliger-retningslinjer.html>
+
+### Explanation Requirements
+
+Teachers will conduct spot checks among the submissions that meet the
+requirements for approval. Students can be called in for informal meetings. If
+the explanation is not sufficient, the submission will not be considered as
+accepted. If the submission is not accepted based on the spot check, it is
+possible to ask for a formal oral test with a teacher (“faglærer”) which
+covers the same material for approval of the mandatory assignment.

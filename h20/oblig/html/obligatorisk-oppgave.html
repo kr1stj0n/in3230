@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="no">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  
+    <meta id="viewport" name="viewport" content="width=device-width, initial-scale=1" />
+  
+
+   <meta charset="utf-8" >
+   
+
+   <meta name="format-detection" content="telephone=no">
+   <meta name="generator" content="Vortex" />
+
+
+     <title>Mandatory assignment - IN3230 - Høst 2020 - Universitetet i Oslo</title>
+     <meta property="og:title" content="Mandatory assignment - IN3230 - Høst 2020 - Universitetet i Oslo" />
+
+
+   
+  
+  
+  
+  
+
+  
+    
+
+    
+    
+    
+
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:site" content="@unioslo" />
+    <meta name="twitter:title" content="Mandatory assignment" />
+
+    
+      <meta name="twitter:description" content="Les denne saken på UiOs nettsider." />
+    
+
+    
+
+    
+    
+      <meta name="twitter:url" content="https://www.uio.no/studier/emner/matnat/ifi/IN3230/h20/oblig/obligatorisk-oppgave.html" />
+    
+  
+
+   
+  
+  
+  
+  
+
+  
+    
+    
+
+    <meta property="og:url" content="https://www.uio.no/studier/emner/matnat/ifi/IN3230/h20/oblig/obligatorisk-oppgave.html" />
+    <meta property="og:type" content="website" />
+    
+
+    
+  
+
+
+    
+  
+  
+  
+  
+  
+  
+  
+
+  
+    
+      <link rel="shortcut icon" href="/vrtx/decorating/resources/dist/images/favicon.ico" >
+      <link rel="apple-touch-icon-precomposed" href="/vrtx/decorating/resources/dist/images/apple-touch-icon.png" >
+    
+   
+
+
+    
+  
+  
+  
+
+  <script><!--
+    var uioPageInfo = {};
+
+    uioPageInfo.readRestricted = false;
+
+    
+      
+      uioPageInfo.cloudAllowed = true;
+    
+
+    
+      uioPageInfo.authenticated = "anonymous";
+    
+  // -->
+  </script>
+
+  
+    <script src="https://www.uio.no/vrtx/__vrtx/app-services/marketing-consent-uio.js"></script>
+  
+
+
+    
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+  <script><!--
+    if (/iPad|Android 3/i.test(navigator.userAgent)) {
+      var tabletVp = document.getElementById('viewport');
+      tabletVp.setAttribute("content", "width=1020, user-scalable=yes");
+    }
+    if (/googlebot/i.test(navigator.userAgent)) {
+      document.addEventListener("DOMContentLoaded", function(event) {
+        var css = '@media only screen and (max-width: 16cm) and (orientation : portrait),' +
+                  '       only screen and (max-width: 19cm) and (orientation : landscape) { * { max-width: 420px; } }';
+        var head = document.getElementsByTagName('head')[0];
+        var s = document.createElement('style');
+        s.setAttribute('type', 'text/css');
+        if (s.styleSheet) {
+          s.styleSheet.cssText = css;
+        } else {
+          s.appendChild(document.createTextNode(css));
+        }
+        head.appendChild(s);
+      });
+    }
+  // -->
+  </script>
+
+  <link rel="stylesheet" media="all" href="/vrtx/decorating/resources/dist/src/css/style.css" >
+  
+    <link rel="stylesheet" media="only screen and (max-width: 16cm) and (orientation : portrait), only screen and (max-width: 19cm) and (orientation : landscape)" href="/vrtx/decorating/resources/dist/src/css/responsive.css" >
+  
+
+  <link rel="stylesheet" media="print" href="/vrtx/decorating/resources/dist/src/css/print.css" >
+
+  
+  
+
+  <script type='text/javascript' src='/vrtx/decorating/resources/dist/src/lib/jquery.min.js'></script>
+
+   
+     
+       <script src="//vrtx.uio.no/js/analytics/v2/uioGa.js"></script>
+     
+     
+       <script src="//vrtx.uio.no/js/analytics/v2/www.uio.no/customTracker.js"></script> 
+     
+   
+
+
+    
+        
+        
+      
+  </head>
+
+  
+    
+      <body class='www.uio.no not-for-ansatte faculty no '  id="vrtx-structured-article">
+    
+  
+  <!--stopindex-->
+
+
+     
+  
+  
+  
+  
+  
+  
+
+  <!-- Hidden navigation start -->
+  <div id="hidnav-wrapper" role="navigation">
+    <ul id="hidnav">
+     
+       <li><a href="#globalnav">Hovednavigasjon (hopp)</a></li>
+     
+     <li><a href="#main">Hovedinnholdet (hopp)</a></li>
+     
+       <li><a href="#bottomnav">Temanavigasjon (hopp)</a></li>
+     
+     <li><a href="#footers">Kontaktinformasjon (hopp)</a></li>
+    </ul>
+  </div>
+  <!-- Hidden navigation end -->
+
+
+    <div id="head-wrapper" role="banner">
+        
+          
+       
+        <div id="head">
+           
+
+           
+           <div class="uio-app-name">
+                
+                  <a href="https://www.uio.no/" class="uio-seal">
+                    <span class="offscreen-screenreader">UiO</span>
+                  </a>
+                  <a href="https://www.uio.no/" class="uio-acronym georgia">UiO</a>
+                  <a href="https://www.uio.no/" class="uio-host uio-host-resp">Universitetet i Oslo</a>
+                
+
+                
+                  
+                    <a href="https://www.uio.no/" class="uio-host">Universitetet i Oslo</a>
+                  
+                
+
+                
+                  
+                
+
+                
+            </div>
+            
+
+            
+
+            
+            <div class="head-menu" role="navigation">
+              
+              
+              <ul>
+                
+                  
+                    <li class="for-ansatte"><a href="https://for-ansatte.uio.no/index.html?lang=no">For ansatte</a></li>
+                    
+                    
+                      
+                        <li class="language"><a href='https://www.uio.no/english/'>English website</a></li>
+                      
+                    
+                  
+                
+                </ul>
+                
+
+
+            </div>
+
+            <div class="header-search">
+              <form method="get" action='/'>
+                <fieldset>
+                  <label for="search-string" class="search-string-label">Søk i nettsidene til UiO</label>
+                  <input type="hidden" name="vrtx" value="searchuio">
+                  <input id="search-string" type="text" name="query" placeholder="Søk i nettsidene til UiO">
+                  <button type="submit">Søk</button>
+                </fieldset>
+              </form>
+            </div>
+            
+
+            
+        </div>
+
+        
+
+    
+
+<div id="menu-wrapper" role="navigation">
+           <ul class="menu">
+            <li><a href="#" class="toggle-navigation">
+                    <span class="icon"></span>
+                    <span class="text">Meny</span>
+                </a>
+            </li>
+            <li>
+                <a href="#" class="toggle-search">
+                    <span class="icon"></span>
+                    <span class="text">Søk</span>
+                </a>
+            </li>
+        </ul>
+       </div>
+
+        <!-- Global navigation start -->
+	<div id="globalnav" aria-labelledby="globalnav-title">
+          <span id="globalnav-title" style="display: none">Hovednavigasjon</span>
+          
+          
+            
+                <ul class="vrtx-tab-menu">
+    <li class="root-folder parent-folder">
+  <a href="https://www.uio.no/">Forsiden</a>
+    </li>
+    <li class="forskning">
+  <a href="https://www.uio.no/forskning/">Forskning</a>
+    </li>
+    <li class="vrtx-active-item studier vrtx-current-item" aria-current="page">
+  <a href="https://www.uio.no/studier/">Studier</a>
+    </li>
+    <li class="livet-rundt-studiene">
+  <a href="https://www.uio.no/livet-rundt-studiene/">Livet rundt studiene</a>
+    </li>
+    <li class="tjenester">
+  <a href="https://www.uio.no/tjenester/">Tjenester og verktøy</a>
+    </li>
+    <li class="om">
+  <a href="https://www.uio.no/om/">Om UiO</a>
+    </li>
+    <li class="personer">
+  <a href="https://www.uio.no/personer/">Personer</a>
+    </li>
+  </ul>
+
+
+            
+          
+          
+        </div>
+	<!-- Global navigation end -->
+    </div>
+
+       <div class="menu-search">
+          <form method="get" action="/">
+            <input type="hidden" name="vrtx" value="searchuio">
+            <label for="search-string-responsive" class="search-string-label">Søk i nettsidene til UiO</label>
+            <input id="search-string-responsive" type="text" name="query" placeholder="Søk i nettsidene til UiO">
+            <button type="submit">Søk</button>
+          </form>
+        </div>
+
+    
+    
+
+  <div class="grid-container uio-info-message alert &nbsp;">
+  <div class="row">
+  <div class="col-1-1">
+
+  
+
+  
+  
+    
+       &nbsp;
+    
+  
+  
+  
+
+  </div>
+  </div>
+  </div>
+
+   <div id="main" role="main">
+     <div id="left-main" role="navigation" aria-labelledby="left-main-title">
+       <span id="left-main-title" style="display: none">Undernavigasjon</span>
+       
+         
+             <ul class="vrtx-breadcrumb-menu">
+            <li class="vrtx-ancestor"> <a href="https://www.uio.no/studier/"><span>Studier</span></a></li>
+            <li class="vrtx-ancestor"> <a href="https://www.uio.no/studier/emner/"><span>Emner</span></a></li>
+            <li class="vrtx-ancestor"> <a href="https://www.uio.no/studier/emner/matnat/"><span>Matematikk og naturvitenskap</span></a></li>
+            <li class="vrtx-ancestor"> <a href="https://www.uio.no/studier/emner/matnat/ifi/"><span>Informatikk</span></a></li>
+            <li class="vrtx-ancestor"> <a href="https://www.uio.no/studier/emner/matnat/ifi/IN3230/"><span>in3230</span></a></li>
+            <li class="vrtx-parent" ><a href="https://www.uio.no/studier/emner/matnat/ifi/IN3230/h20/"><span>Høst 2020</span></a>
+
+      <ul>
+          <li class="vrtx-child"><a  href="https://www.uio.no/studier/emner/matnat/ifi/IN3230/h20/abbreviations/"><span>Abbreviations</span></a></li>
+          <li class="vrtx-child"><a  href="https://www.uio.no/studier/emner/matnat/ifi/IN3230/h20/generell-informasjon/"><span>Generell informasjon</span></a></li>
+          <li class="vrtx-child"><a  href="https://www.uio.no/studier/emner/matnat/ifi/IN3230/h20/kursmateriell/"><span>kursmateriell</span></a></li>
+          <li class="vrtx-child"><a class="vrtx-marked" aria-current="page" href="https://www.uio.no/studier/emner/matnat/ifi/IN3230/h20/oblig/"><span>Obligatorisk oppgave</span></a></li>
+      </ul>
+
+    </li>
+
+  </ul>
+
+         
+       
+     </div>
+     <div id="right-main" class="uio-main">
+       
+
+           
+            
+              <div class="vrtx-context-box vrtx-context-box-linked">
+                <a href="/studier/emner/matnat/ifi/IN3230/h20/">
+                  
+                    IN3230 - Høst 2020
+                  
+                </a>
+              </div>
+            
+
+       <!--startindex-->
+       
+        <div id="vrtx-content">
+        
+        
+        
+          <div id="vrtx-main-content" class="vrtx-hide-additional-content-false">
+        
+            
+      
+
+            <div id="vrtx-main-user">
+              <h1>
+      
+        Mandatory assignment
+      </h1>
+              
+      
+              
+              
+                
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+     
+      
+              
+              
+
+
+
+
+              <h2>Formalities</h2>
+
+<p>This assignment must be completed individually. The submission must be approved prior to submission of the Home Exam 1. To pass the submission must meet the requirements that are documented here, and you must be able to explain every aspect of your solution.</p>
+
+<h2>Prerequisites</h2>
+
+<p>Having completed an introductory course on operating systems and networks, including basic C programming, such as <a href="https://www.uio.no/studier/emner/matnat/ifi/IN2140/">IN2140</a> (or equivalent), is a mandatory prerequisite to taking this course. Should you be lacking such experience for whatever reason, it is your own responsibility to catch up to the competence level we expect our students to have. Make good use of the group and plenary sessions, we will review some relevant concepts there.</p>
+
+<h2>Task</h2>
+
+<p>The main focus of the task is to build and test a very simple network stack. We will use a protocol called MIP, which stands for “Minimal Interconnection Protocol”. MIP is a minimal network layer protocol, created for IN3230, that has only the bare necessities in the header and avoids overhead, making it quick to process and minimizing latency.</p>
+
+<p>The programs you write will run on a virtual network managed by <a href="http://mininet.org/"><em>mininet</em></a> inside a virtual machine. You will have to write three programs: a <em>MIP daemon</em>, a <em>ping server</em> and a <em>ping client</em>. These are described in more details below.</p>
+
+<p>Finally, it is important to document your work, so you will be writing a <em>brief</em> design document. You will also need to analyze some design choices we have made.</p>
+
+<h3>MIP daemon</h3>
+
+<p>The MIP daemon implements the network layer in our stack. A single instance of the daemon is permanently active on every host participating in the network.</p>
+
+<ul></ul>
+
+<h4>MIP daemon components</h4>
+
+<p>The MIP daemon is comprised of several components that implement different aspects required to provide the MIP network layer's services:</p>
+
+<ul>
+	<li>The interface with the layer above. Conventionally this would be the transport layer, but for the time being we will connect applications directly above the MIP layer. This component is responsible for encapsulating the payload from the upper layer as a <em>Service Data Unit</em> (SDU) in a MIP <em>datagram</em> and populating the MIP header fields. The entirety of the MIP datagram, that is the headers combined with the SDU, is referred to as the MIP <em>Protocol Data Unit</em> (PDU).</li>
+	<li>The interface with the layer below, in this case the link layer. We will only concern ourselves with interfacing with an Ethernet link layer. This component must take care of framing the MIP PDU as an Ethernet frame.</li>
+	<li>A MIP to physical address mapping service, the <em>MIP Address Resolution Protocol </em>(MIP-ARP). Conceptually this is a protocol which resides <em>both</em> directly above the network layer (being an application of sorts) as well as on the interface between MIP and the link layer (because it needs access to Ethernet address). Because of this somewhat odd layering placement and as it is so tightly integrated with the network layer we will implement it directly in the MIP daemon.</li>
+</ul>
+
+<p>Combined, these three components will enable the MIP daemon to provide a basic point-to-point networking service. In other words, directly connected neighbours can communicate with each other, but for now we will <strong>not</strong> provide any way to communicate across intermediate nodes (no multi-hop communication).</p>
+
+<h4>MIP-ARP</h4>
+
+<p>To be able to communicate across Ethernet, hosts need to know each other's Ethernet link layer addresses (MAC addresses).</p>
+
+<p>It would be highly impractical to force users to know these lower-layer details, therefore we need a way of automatically learning the mapping between MIP and MAC addresses. The MIP-ARP protocol provides this service and is specified in detail in the MIP specification linked below.</p>
+
+<p>These mappings are required for every outgoing transmission, so it would be rather inefficient to repeat such lookups for hosts we have looked up previously. Solve this by implementing a MIP-ARP cache table that stores recent lookup results.</p>
+
+<h4>Implementation details</h4>
+
+<p>We have specified the MIP and MIP-ARP protocols in an RFC-like document which you can <a href="/studier/emner/matnat/ifi/IN3230/h20/oblig/ispec-mip-2020-oblig.txt">find here</a>.</p>
+
+<p>The MIP daemon will listen on two sockets:</p>
+
+<ul>
+	<li>a raw socket capturing Ethernet frames with a given Ethertype identifying MIP traffic: <em>ETH_P_MIP</em> to be defined as <em>0x88B5</em>. The same socket is also used to transmit outbound traffic.</li>
+	<li>a UNIX domain socket which functions as the interface with the upper layers.</li>
+</ul>
+
+<p>The protocol for communicating with upper layers is as follows:</p>
+
+<ul>
+	<li>Whenever there is an SDU to be passed either up or down, this is sent as a message over the UNIX socket.</li>
+	<li>The message format consists of: An 8 bit MIP address, which is either the sender or destination address when passing up/down, respectively. The rest of the message contains the payload (SDU).</li>
+	<li>In this assignment, it is sufficient to use blocking socket calls when dealing with this interface socket. We do not support multiple upper layer processes for the time being.</li>
+</ul>
+
+<p>The user must configure the MIP daemon with an address uniquely identifiying the current host on the MIP network.</p>
+
+<p>Users must also provide a filesystem path indicating where the daemon should bind a UNIX domain socket, which will be used as the interface to the upper layer(s).</p>
+
+<p>If the user optionally passes a debug-mode flag on the command line, every communication should be logged to the console with at least the following status information:</p>
+
+<ul>
+	<li>Source and destination Ethernet addresses</li>
+	<li>Source and destination MIP addresses</li>
+	<li>Current content of the MIP-ARP cache</li>
+</ul>
+
+<h5>Command line argument specification</h5>
+
+<pre>
+mip_daemon [-h] [-d] &lt;socket_upper&gt; &lt;MIP address&gt;</pre>
+
+<p>Options:</p>
+
+<ul>
+	<li><strong>-d</strong>: enable debugging mode (prints out internal information and state)</li>
+	<li><strong>-h</strong>: prints help and exits the program</li>
+</ul>
+
+<p>Arguments:</p>
+
+<ul>
+	<li><strong>socket_upper</strong>: pathname of the UNIX socket used to interface with upper layers.</li>
+	<li><strong>MIP address</strong>: the MIP address to assign to this host</li>
+</ul>
+
+<h3>Ping server</h3>
+
+<p>The ping server conceptually ought to reside in the application layer, but we will interface it directly with the network layer for now.</p>
+
+<p>This server will receive text messages via IPC from the local MIP daemon. It should print this text and send back a ping message with content “PONG:<em>&lt;received message&gt;</em>”.</p>
+
+<h4>Command line argument specification</h4>
+
+<pre>
+ping_server [-h] &lt;socket_lower&gt;</pre>
+
+<p>Options:</p>
+
+<ul>
+	<li><strong>-h</strong>: prints help and exits the program</li>
+</ul>
+
+<p>Arguments:</p>
+
+<ul>
+	<li><strong>socket_lower</strong>: pathname of the socket that the MIP daemon uses to communicate with upper layers (MIP is a lower layer from the point of view of the ping application).</li>
+</ul>
+
+<ul></ul>
+
+<h3>Ping client</h3>
+
+<p>Akin to the ping server, the ping client is an application, but again we will attach it directly above the network layer.</p>
+
+<p>The ping client sends ping messages through the network layer. These message contain user-specified content and are addressed to some user-specified MIP address. Ping messages are built up in the following manner: "PING:<em>&lt;user-specified message&gt;</em>".</p>
+
+<p>Upon receiving a response, it prints the time between sending the message and obtaining the response. Outgoing requests can be correlated with their corresponding responses by matching the message echoed by the server in the "PONG" reply. Unknown messages can be ignored.</p>
+
+<p>The ping client sends a ping, and after receiving a response and printing the result it exits. If no response arrives within 1 second, the ping client should print “timeout” and exit.</p>
+
+<h4>Command line argument specification</h4>
+
+<pre>
+ping_client [-h] &lt;destination_host&gt; &lt;message&gt; &lt;socket_lower&gt;</pre>
+
+<p>Options:</p>
+
+<ul>
+	<li><strong>-h</strong>: prints help and exits the program</li>
+</ul>
+
+<p>Arguments:</p>
+
+<ul>
+	<li><strong>destination_host</strong>: MIP address of the destination host</li>
+	<li><strong>message</strong>: the message that needs to be sent</li>
+	<li><strong>socket_lower</strong>: pathname of the socket that the MIP daemon uses to communicate with upper layers (MIP is a lower layer from the point of view of the ping application).</li>
+</ul>
+
+<h2>Example Scenario</h2>
+
+<p>We have detailed an example scenario to help illustrate how everything is meant to work together <a href="/studier/emner/matnat/ifi/IN3230/h20/oblig/example-scenario.html">here</a>.</p>
+
+<ol></ol>
+
+<h2>Development and test environment</h2>
+
+<p>You will develop and test your implementation on a virtual machine image that we provide. The virtual machine will be hosted on the NREC cloud infastructure, for detailed information and instructions on using the virtual machine platform, <a href="/studier/emner/matnat/ifi/IN3230/h20/oblig/running-your-vm-on-nrec.html">see here</a>.</p>
+
+<p><strong>Please do not attempt to solve the assignment locally on your own machine or in any way which deviates from these instructions.</strong></p>
+
+<h2>Submission materials</h2>
+
+<p>You must submit the following:</p>
+
+<ol>
+	<li>A <em>design document</em> that contains:
+
+		<ul>
+			<li>A discussion of how MIP is different than IPv4, and how its performance compares to IPv4. One to two paragraphs.</li>
+			<li>Discuss why we need to handle the MIP-ARP protocol as a special case. Discuss alternative design choices that would allow for a cleaner implementation. Two to three paragraphs.</li>
+			<li>A flow chart summarizing the flow of execution on both the client and server side.</li>
+		</ul>
+	</li>
+	<li><em>Program code</em>, where the code is well commented. Document all the variables and definitions. For each function in the program, you must document the following:
+		<ul>
+			<li>What the function does.</li>
+			<li>What input and output parameters mean and how they are used.</li>
+			<li>Which global variables affect the function.</li>
+			<li>What the function returns.</li>
+			<li>Other characteristics that are important to know about (eg. error situations).</li>
+		</ul>
+		Example comment:
+
+		<pre>
+/**
+ * Convert string to all-uppercase
+ * str: pointer to input string.
+ * dest: pointer to output buffer.
+ * The buffer pointed at by dest must be allocated
+ * and large enough to hold all of str.
+ *
+ * Returns the number of characters changed.
+ */
+int to_upper(char *str, char **dest)
+{ ...</pre>
+	</li>
+</ol>
+
+<h2>Submission requirements</h2>
+
+<p>A <strong>design document </strong>edited using an appropriate tool, eg. LaTeX, Word, etc. The document should contain the items listed above, as well as a cover page where the following information is provided:</p>
+
+<p style="margin-left: 40px;"><em>Name</em> - <em>username</em> - <em>date</em> - <em>course code</em></p>
+
+<p>Before delivery, the document shall be converted to <strong>PDF format</strong>. Neither a Word / Works / Open Office / TeX - document nor a regular editor file (plain text) will be accepted.</p>
+
+<p>The <strong>code</strong> must consist of compilable C source files. We recommend including a Makefile for easy compilation.</p>
+
+<p>Your solution must compile and run on the provided virtual machine image, without requiring additional configuration.</p>
+
+<p>The scope of the design document need not necessarily be large, but must contain sufficient information to meet the requirements described under ‘task’. The important thing is to document understanding of the relevant topics, in addition to the actual implementation.</p>
+
+<h3>Electronic submission</h3>
+
+<p>All materials must be submitted electronically where all files (Makefile, * .c, * .h, readme.pdf, etc.) are collected in one directory using your UiO username as a filename. Create one compressed tar-ball containing that directory. Use the command:</p>
+
+<pre>
+tar -zcvf username.tgz username</pre>
+
+<p>Deliver your submission through the <a href="https://devilry.ifi.uio.no/">Devilry system</a>. You may deliver as many times as you like before the deadline, we will only consider the latest submission.</p>
+
+<h3>Deadline</h3>
+
+<p><strong>Wednesday 16 September 2019 by 23:59.</strong></p>
+
+<p>Remember that you cannot deliver a copy of answers from others, but must deliver your own original solution. The requirements for deliveries can be found at: <a href="https://www.uio.no/studier/eksamen/obligatoriske-aktiviteter/mn-ifi-obliger-retningslinjer.html">https://www.uio.no/studier/eksamen/obligatoriske-aktiviteter/mn-ifi-obliger-retningslinjer.html</a></p>
+
+<h3>Explanation Requirements</h3>
+
+<p>Teachers will conduct spot checks among the submissions that meet the requirements for approval. Students can be called in for informal meetings. If the explanation is not sufficient, the submission will not be considered as accepted. If the submission is not accepted based on the spot check, it is possible to ask for a formal oral test with a teacher (“faglærer”) which covers the same material for approval of the mandatory assignment.</p>
+
+            </div>
+
+            
+      
+      
+      
+            
+
+            
+      
+            
+      
+        <div class="vrtx-date-info">
+          <span class="published-date-label">Publisert</span> <span class="published-date">26. aug. 2020 13:07 </span>
+          
+           - <span class="last-modified-date">Sist endret</span> <span class="last-modified-date">26. aug. 2020 13:07</span>
+          
+        </div>
+      
+            
+              <div class="vrtx-social-components">
+                
+                  
+<a class="vrtx-email-friend" title='Del på e-post' href="mailto:?subject=Mandatory%20assignment&amp;body=https%3A%2F%2Fwww.uio.no%2Fstudier%2Femner%2Fmatnat%2Fifi%2FIN3230%2Fh20%2Foblig%2Fobligatorisk-oppgave.html">
+Del på e-post</a>
+
+                
+                
+                  
+<div class="vrtx-share-at-component">
+  <ul>
+
+       <li class="vrtx-share-at-Facebook">
+         <a href="http://www.facebook.com/sharer.php?u=https%3A%2F%2Fwww.uio.no%2Fstudier%2Femner%2Fmatnat%2Fifi%2FIN3230%2Fh20%2Foblig%2Fobligatorisk-oppgave.html" target="_blank" class="facebook">
+           Del på Facebook</a>
+       </li>
+
+       <li class="vrtx-share-at-Twitter">
+         <a href="http://twitter.com/intent/tweet?text=Mandatory+assignment&amp;url=https%3A%2F%2Fwww.uio.no%2Fstudier%2Femner%2Fmatnat%2Fifi%2FIN3230%2Fh20%2Foblig%2Fobligatorisk-oppgave.html" target="_blank" class="twitter">
+           Del på Twitter</a>
+       </li>
+  </ul>
+</div>
+
+                
+              </div>
+            
+            
+
+
+
+          </div>
+          
+      
+      
+      
+        
+      
+        </div>
+      
+       <!--stopindex-->
+     </div>
+   </div>
+
+   <div id="bottomnav" role="navigation">
+     
+
+     <div id="breadcrumb-container">
+       
+         <div id="vrtx-breadcrumb-start" class="breadcrumb">
+           
+             <span class="vrtx-uio"><a href="https://www.uio.no/">UiO</a> <span class="vrtx-breadcrumb-delimiter">&gt;</span></span>
+           
+           
+             <span class="vrtx-faculty"><a href="https://www.uio.no/">Universitetet i Oslo</a> <span class="vrtx-breadcrumb-delimiter">&gt;</span></span>
+           
+         </div>
+         
+           
+
+
+
+
+
+
+  <div id="vrtx-breadcrumb-wrapper">
+    <div id="vrtx-breadcrumb" class="breadcrumb">
+            <span class="vrtx-breadcrumb-level vrtx-breadcrumb-level-2">
+            <a href="https://www.uio.no/studier/">Studier</a>
+      	  <span class="vrtx-breadcrumb-delimiter">&gt;</span>
+        </span>
+    </div>
+  </div>
+
+         
+
+       
+       </div>
+
+       <div id="bottom-menu">
+         
+           
+
+         
+       </div>
+     
+     
+       
+         <div id="bottom-subfolder-menu">
+           
+
+         </div>
+       
+     
+   </div>
+
+
+
+
+    <!-- Page footer start -->
+    <div id="footer-wrapper" class="grid-container " role="contentinfo">
+       <div id="footers" class="row">
+            <div class="col-3-5 vcard">
+            
+              
+                
+                  <div class="col-1-3 adr">
+  <div class="content">
+    <h2 class="menu-label">Kontakt oss</h2>
+        <p><a href="/om/kontaktinformasjon/">Kontaktpunkter UiO</a></p>
+  </div>
+</div>
+<div class="col-1-3 adr">
+  <div class="content">
+    <h2 class="menu-label">Adresse</h2>
+    <p><span class="post-office-box">Universitetet i Oslo</span><br/>
+    <span class="post-office-box">Boks 1072 Blindern</span><br/>
+    <span class="postal-code">0316 Oslo</span></p>
+  </div>
+</div>
+<div class="col-1-3">
+  <div class="content">
+    <h2 class="menu-label">Nødnummer</h2>
+    <p>Ved brann, ulykker og alvorlige hendelser ring <br/><span class="tel">22 85 66 66</span></p>
+  </div>
+</div>
+                
+              
+            
+            </div>
+            <div class="col-2-5 responsible-login">
+             <div class="content">
+                <span class="menu-label">Ansvarlig for denne siden</span>
+                <p>
+                  
+                    <a href="mailto:studieredaktor@admin.uio.no">studieredaktor@admin.uio.no</a>
+                  
+                </p>
+                
+  
+  
+  
+    <!-- begin view dropdown js -->
+    <script type="text/javascript" src="/vrtx/__vrtx/static-resources/js/view-dropdown.js"></script>
+    <!-- end view dropdown js -->
+  
+  <div class="vrtx-login-manage-component vrtx-dropdown-component vrtx-dropdown-component-toggled">
+      <a href="https://www.uio.no/studier/emner/matnat/ifi/IN3230/h20/oblig/obligatorisk-oppgave.html?authTarget" class="vrtx-login-manage-title-link vrtx-dropdown-title-link" rel="nofollow">Logg inn</a>
+      <a href="javascript:void(0)" class="vrtx-login-manage-link vrtx-dropdown-link" rel="nofollow"><span class="offscreen-screenreader">Logg ut meny</span></a>
+    <div class="vrtx-login-manage-wrapper vrtx-dropdown-wrapper">
+      <div class="vrtx-login-manage-wrapper-inner vrtx-dropdown-wrapper-inner">
+      <ul>
+          
+          <li class="vrtx-dropdown-first vrtx-dropdown-last">
+            
+              <a href="https://www-adm.uio.no/studier/emner/matnat/ifi/IN3230/h20/oblig/obligatorisk-oppgave.html?vrtx=admin" class="vrtx-login-manage-admin" rel="nofollow">
+Administrer dette dokumentet              </a>
+          </li>
+      </ul>
+      </div>
+    </div>
+  </div>
+    
+
+
+              </div>
+            </div>
+        </div>
+    </div>
+
+    
+  
+  
+  
+  
+  
+  
+  
+
+  <script src='/vrtx/decorating/resources/dist/src/js/uio2.js'></script>
+
+  
+  
+
+</body>
+</html>

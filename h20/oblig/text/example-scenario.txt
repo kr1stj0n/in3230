@@ -1,0 +1,70 @@
+#  Example scenario
+
+Consider the following network:
+
+    
+    
+    **[Host1]** _if12_ ---------- _if21_ **[Host2]** _if23_ ---------- _if32_ **[Host3]**
+    
+
+**Step 0** ( _Initialization_ )
+
+ARP caches of all hosts are initially empty.
+
+
+
+**Step1** (Host1 pings Host2)
+
+  1. Host1 checks its ARP cache whether there is an entry for Host2's MIP address. Host1 broadcasts ``who is Host2?” (a broadcast Ethernet frame containing a MIP packet with SDU Type set to _ARP Request,_ without payload and Length=0). Note that Host2 will reply back the MAC address of the interface where the broadcast message was received (RAW sockets descriptor can distinguish different interfaces).
+  2. Host2 receives the broadcast message, replies back to Host1 with a MIP-ARP response (unicast message to Host1, SDU Type: _ARP Response_ ), and both update their caches.
+  3. Host1 sends the ping packet to Host2, and Host2 responds.
+
+The updated ARP caches of all hosts will be as following:
+
+Host1
+MIP address |    MAC address   | RAW socket  
+------------|------------------|-------------
+     2      | if_21 MAC address| if_12 socket  
+  
+Host2
+MIP address |    MAC address   | RAW socket  
+------------|------------------|-------------
+     1      | if_12 MAC address| if_21 socket  
+ 
+
+Host3
+MIP address |    MAC address   | RAW socket  
+------------|------------------|-------------
+            |                  |   
+ 
+
+**Step 2** (Host3 pings Host2)
+
+  1. Host3 checks its ARP cache whether there is an entry for Host2's MIP address. Host3 broadcasts ``who is Host2?” (a broadcast Ethernet frame containing a MIP packet with SDU Type set to _ARP Request,_ without payload and Length=0).
+  2. Since Host2 receives the broadcast message from _if_23 RAW socket_ , it will reply back to Host3 the MAC address of _if_23_ interface. Host3 receives the ARP Response and updates its cache.
+  3. Host3 sends the ping packet to Host2, and Host2 responds.
+
+After this step, the ARP caches will be as following:
+
+Host1
+MIP address |    MAC address   | RAW socket  
+------------|------------------|-------------
+     2      | if_21 MAC address| if_12 socket  
+  
+Host2
+MIP address |    MAC address   | RAW socket  
+------------|------------------|-------------
+     1      | if_12 MAC address| if_21 socket  
+     3      | if_32 MAC address| if_23 socket  
+ 
+
+Host3
+MIP address |    MAC address   | RAW socket  
+------------|------------------|-------------
+     2      | if_23 MAC address| if_32 socket  
+
+
+**Step 3** (Host1 pings Host2 again)
+
+  1. Host1 should use the MIP-ARP-cache table instead of broadcasting a MIP-ARP message. It should directly send the ping to the already known Host2, where Host1 is also already known and a “PONG” response can directly be sent.
+  2. Host1 cannot ping Host3.

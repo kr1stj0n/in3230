@@ -1,0 +1,538 @@
+
+
+
+
+INF3230/4230: Networks                                          M. Welzl
+                                                               K. Hiorth
+Intended status: Standards Track                                 K. Ciko
+                                        University of Oslo
+                                                         August 25, 2020
+
+
+ Minimal Interconnection Protocol (MIP) specification for the Mandatory
+                               Assignment
+                             ispec-mip-2020
+
+Abstract
+
+   This document specifies the Minimal Interconnection Protocol (MIP)
+   used in the IN3230 and IN4230 coursework.  MIP is a very minimal
+   network layer protocol.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Welzl, et al.                                       [Page 1]
+
+                    MIP specification [mand. assign.]        August 2020
+
+
+Table of Contents
+
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
+   2.  Definitions . . . . . . . . . . . . . . . . . . . . . . . . .   2
+   3.  Addressing  . . . . . . . . . . . . . . . . . . . . . . . . .   4
+   4.  Header format . . . . . . . . . . . . . . . . . . . . . . . .   4
+     4.1.  Destination and source addresses  . . . . . . . . . . . .   4
+     4.2.  Time To Live  . . . . . . . . . . . . . . . . . . . . . .   5
+     4.3.  SDU length  . . . . . . . . . . . . . . . . . . . . . . .   5
+     4.4.  SDU type  . . . . . . . . . . . . . . . . . . . . . . . .   5
+   5.  Service model . . . . . . . . . . . . . . . . . . . . . . . .   5
+     5.1.  Protocol Data Unit specification  . . . . . . . . . . . .   5
+     5.2.  Service Data Unit specification . . . . . . . . . . . . .   6
+   6.  MIP-ARP . . . . . . . . . . . . . . . . . . . . . . . . . . .   6
+     6.1.  Message structure . . . . . . . . . . . . . . . . . . . .   6
+       6.1.1.  Request . . . . . . . . . . . . . . . . . . . . . . .   6
+       6.1.2.  Response  . . . . . . . . . . . . . . . . . . . . . .   7
+     6.2.  Message sequence  . . . . . . . . . . . . . . . . . . . .   7
+   7.  Normative References  . . . . . . . . . . . . . . . . . . . .   8
+   Appendix A.  Known SDU types  . . . . . . . . . . . . . . . . . .   8
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .   8
+
+1.  Introduction
+
+   The currently most widely adopted network interconnection protocol,
+   the Internet Protocol (IP), contains baggage from over four decades
+   of continuous changes (or in some cases, refusal to change despite a
+   changing networking landscape).  Implementing it correctly is a
+   rather complicated task, so in the coursework for our networking
+   course, we will instead concentrate on a very minimal network
+   interconnection protocol we have dubbed the Minimal Interconnection
+   Protocol (MIP).  It is rather too simple to be deployed in most real
+   networks, but is sufficient to support the small networks we will
+   use.  MIP is also much simpler to reason about than IP.  Note that
+   despite the similarity in name, MIP is not related to IP besides the
+   role it occupies in the network stack; MIP is NOT a subset of IP.
+
+2.  Definitions
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+   document are to be interpreted as described in RFC 2119 [RFC2119].
+
+   Acronyms used in this document:
+
+      MIP -- Minimal Interconnection Protocol
+
+      PDU -- Protocol Data Unit
+
+
+
+Welzl, et al.                                       [Page 2]
+
+                    MIP specification [mand. assign.]        August 2020
+
+
+      SDU -- Service Data Unit
+
+      TTL -- Time To Live
+
+      ARP -- Address Resolution Protocol
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Welzl, et al.                                       [Page 3]
+
+                    MIP specification [mand. assign.]        August 2020
+
+
+3.  Addressing
+
+   In MIP, we address each node (host) with a single address.  Unlike
+   for example IP, this means that a given node with multiple network
+   interfaces attached is addressed the same regardless of which
+   interface a datagram would arrive over.
+
+   MIP addresses are drawn from a flat 8 bit address space.
+
+   Address 255 (0xFF) is reserved for a special case: it is the
+   broadcast address.  A datagram with destination address 255 MUST be
+   sent to all directly connected neighbour nodes.  This leaves
+   addresses 0-254 as available for general addressing, allowing up to
+   255 network nodes within a single network.
+
+4.  Header format
+
+   The header format of the MIP protocol is defined as follows:
+
+     +--------------+-------------+---------+-----------+-----------+
+     | Dest. Addr.  | Src. Addr.  | TTL     | SDU Len.  | SDU type  |
+     +--------------+-------------+---------+-----------+-----------+
+     | 8 bits       | 8 bits      | 4 bits  | 9 bits    | 3 bits    |
+     +--------------+-------------+---------+-----------+-----------+
+
+                        Table 1: MIP header format
+
+   The header fields are defined as follows:
+
+   Destination address  The MIP address of the destination node
+
+   Source address  The MIP address of the source node
+
+   TTL          Time To Live; maximum hop count
+
+   SDU length   Length of the SDU (i.e. payload) encapsulated within
+                this MIP datagram.
+
+   SDU type     The type of the SDU (i.e. upper layer protocol type).
+
+   In the next sections, we describe these in more detail.
+
+4.1.  Destination and source addresses
+
+   The destination and source MIP addresses, respectively.  These are
+   full 8 bit MIP addresses.  See Section 3 for further details
+   regarding addressing in MIP.
+
+
+
+
+Welzl, et al.                                       [Page 4]
+
+                    MIP specification [mand. assign.]        August 2020
+
+
+4.2.  Time To Live
+
+   This value MUST be decremented by a node about to forward a datagram.
+   When the TTL value reaches 0, the datagram MUST be discarded and the
+   node MUST NOT forward it.
+
+   The TTL mechanism prevents datagrams being forwarded around the
+   network indefinitely in case there would be a routing loop.
+
+   It is RECOMMENDED that broadcasted datagrams set a TTL value of 1, to
+   prevent so-called broadcast storms in the network.
+
+4.3.  SDU length
+
+   The length of the Service Data Unit, or payload, encapsulated within
+   this datagram (PDU).
+
+   The length is expressed as the number of 32-bit words the SDU
+   occupies.  In other words, to get the SDU length in bytes, this value
+   is multiplied by 4.
+
+   For more details regarding SDU framing, see Section 5.2.
+
+4.4.  SDU type
+
+   The SDU type field identifies the content of the SDU (i.e. the upper
+   layer protocol).  This allows the upper layer to hand the SDU to the
+   appropriate protocol implementation.
+
+5.  Service model
+
+5.1.  Protocol Data Unit specification
+
+   The MIP PDU is the entirety of the payload data handed to the MIP
+   layer from the lower layer (typically some kind of link layer).  It
+   consists of the MIP header as defined in Table 1 as well as the SDU,
+   defined hereafter in Section 5.2.
+
+   MIP PDUs can be considered to be datagrams.  That is, every PDU is
+   self-contained and independent of every other.  There are no
+   mechanisms for fragmenting or ordering PDUs.  In MIP, PDUs are
+   delivered in a best effort, unreliable manner; should the lower
+   layers drop a PDU in transit for whatever reason, no attempt to
+   detect this or retransmit the PDU will be made.
+
+
+
+
+
+
+
+Welzl, et al.                                       [Page 5]
+
+                    MIP specification [mand. assign.]        August 2020
+
+
+5.2.  Service Data Unit specification
+
+   The SDU of the MIP protocol is the payload data which gets passed to
+   the network layer above, including any headers the upper layer
+   protocol may define.
+
+   The SDU type field of the MIP header allows the upper layer to
+   identify the contents of the SDU and handle it accordingly.
+
+   A list of recognized SDU types can be found in Appendix A.
+
+   MIP SDUs MUST have a length that is 32-bit aligned.  This means that
+   the length in bytes of the SDU MUST be divisible by 4.  Any padding
+   or other mechanisms to permit SDU payloads of lengths not adhering to
+   this requirement MUST be implemented in an upper layer protocol.
+
+6.  MIP-ARP
+
+   For MIP to be able to hand down MIP PDUs to the lower layer, there
+   must exist some mechanism whereby the implementation can learn the
+   mapping between MIP addresses and lower level addresses.  We specify
+   a simple protocol for achieving that goal in the case of Ethernet
+   link layers called the MIP Address Resolution Protocol (MIP-ARP).
+
+6.1.  Message structure
+
+   MIP-ARP defines two message types: requests and responses.  They
+   share a common MIP SDU message format defined as follows:
+
+                +--------+-----------+--------------------+
+                | Type   | Address   | Padding/ Reserved  |
+                +--------+-----------+--------------------+
+                | 1 bit  | 8 bits    | 23 bits of zeroes  |
+                +--------+-----------+--------------------+
+
+                      Table 2: MIP-ARP message format
+
+6.1.1.  Request
+
+   A message with the following contents MUST be broadcasted at the
+   Ethernet layer on all active Ethernet network interfaces.  The MIP
+   destination address MUST be set to 0xFF.
+
+
+
+
+
+
+
+
+
+Welzl, et al.                                       [Page 6]
+
+                    MIP specification [mand. assign.]        August 2020
+
+
+     +-------+-------------------------+-----------------------------+
+     | Type  | Address                 | Padding/ Reserved           |
+     +-------+-------------------------+-----------------------------+
+     | 0x00  | MIP address to look up  | Pad with 0x00 until 32 bits |
+     +-------+-------------------------+-----------------------------+
+
+                     Table 3: MIP-ARP request message
+
+6.1.2.  Response
+
+   In response to a matching request, a message with the following
+   contents MUST be unicasted back to the requesting MIP node over the
+   arriving Ethernet network interface.
+
+    +-------+---------------------------+-----------------------------+
+    | Type  | Address                   | Padding/ Reserved           |
+    +-------+---------------------------+-----------------------------+
+    | 0x01  | MIP address that matched  | Pad with 0x00 until 32 bits |
+    +-------+---------------------------+-----------------------------+
+
+                     Table 4: MIP-ARP response message
+
+6.2.  Message sequence
+
+   MIP-ARP is a request-response protocol.  The sequence of messages in
+   a typical MIP-ARP exchange is as follows:
+
+   1.  The originating node I, MIP address 0x01 and MAC address
+       00:00:00:00:00:11, requires the MAC address of a corresponding
+       node C with MIP address 0x05 and MAC address 00:00:00:00:00:22
+       (unknown to I).
+
+   2.  I broadcasts a MIP-ARP request: "Who has 0x05?"  The sender
+       (0x01) is identified in the MIP header, the destination MIP
+       address of the PDU is set to 0xFF, meaning broadcast.
+
+   3.  The MIP-ARP request is broadcast on all Ethernet interfaces
+       connected to node I, towards the broadcast MAC address
+       ff:ff:ff:ff:ff:ff.
+
+   4.  Assuming node C is directly connected to I via an Ethernet link
+       terminated by local network interface ifA, it will receive the
+       broadcast and identify that the request is for its own MIP
+       adddress (0x05).  Node C implicitly learns the mapping {0x01 =>
+       (00:00:00:00:00:11, ifA)}.
+
+
+
+
+
+
+Welzl, et al.                                       [Page 7]
+
+                    MIP specification [mand. assign.]        August 2020
+
+
+   5.  Node C will construct a MIP-ARP response: "I have 0x05.", which
+       is then transmitted back to I with source 0x05 and destination
+       0x01 in the MIP header, over interface ifA.
+
+   6.  Upon receiving the MIP-ARP response on its interface ifX, node I
+       now learns the mapping {0x05 => (00:00:00:00:00:22, ifX)} thanks
+       to the MAC and MIP source addresses of the response message, as
+       well as the interface on which the response was received.
+
+7.  Normative References
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119,
+              DOI 10.17487/RFC2119, March 1997, <https://www.rfc-
+              editor.org/info/rfc2119>.
+
+Appendix A.  Known SDU types
+
+   The following SDU types are currently recognized:
+
+   0x01      MIP-ARP
+
+   0x02      Ping
+
+Authors' Addresses
+
+   Michael Welzl
+   University of Oslo
+   PO Box 1080 Blindern
+   Oslo  N-0316
+   Norway
+
+   Email: michawe@ifi.uio.no
+
+
+   Kristian Hiorth
+   University of Oslo
+   PO Box 1080 Blindern
+   Oslo  N-0316
+   Norway
+
+   Email: kristahi@ifi.uio.no
+
+
+
+
+
+
+
+
+
+Welzl, et al.                                       [Page 8]
+
+                    MIP specification [mand. assign.]        August 2020
+
+
+   Kristjon Ciko
+   University of Oslo
+   PO Box 1080 Blindern
+   Oslo  N-0316
+   Norway
+
+   Email: kristjoc@ifi.uio.no
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Welzl, et al.                                       [Page 9]

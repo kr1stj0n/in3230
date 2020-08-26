@@ -1,0 +1,73 @@
+#  FAQ and clarifications
+
+Frequently asked questions and clarifications regarding the mandatory
+assignment
+
+## FAQ
+
+### Q: Do I need to specifically use the _recvmsg/sendmsg_ system calls?
+
+A: No, it does not matter which variant of the receive/send system calls you
+use in your code. The reference to _recvmsg_ and _sendmsg_ in the assignment
+text was meant to be an example. We apologize for the somewhat awkward wording
+in the relevant part of the assignment.
+
+### Q: How should I handle multiple applications attached to the same MIP
+daemon?
+
+A: In this assignment, you can't properly handle multiple applications
+attached to the same MIP daemon. There is no way to tell applications apart
+given the MIP network header alone. Effectively, this limits us to one
+application per host for now.
+
+### Q: Can I use qemu to locally run the VM instead?
+
+A: No, this is not a valid option. You must run the VM in the UH-IaaS cloud.
+Please make sure you always refer to information we have given this year, not
+old and outdated information from the earlier INF3190 course.
+
+### Q: May I use _fork_ to handle multiple sockets simultaneously?
+
+A: Yes, that is one possible solution. We do however suggest using _select,
+poll_ or _epoll_ instead, because this will be easier to work with once we
+extend the functions of our network stack in the next assignments.
+
+### Q: How do I run my programs to test them?
+
+A: You will use mininet to instantiate an emulated network to test your MIP
+daemon on. See the file _obligtopology.py_ in the home folder of the debian
+user in the VM. This file contains a configuration corresponding to the
+example scenario in the assignment, as well as instructions on how to actually
+start mininet.
+
+If you follow these instructions, you will get one xterm window per virtual
+host in the network, which you can use to run programs on those hosts. On the
+mininet console you can also issue commands such as _xterm A_ which will open
+another xterm running "inside" virtual host A.
+
+For further documentation on using mininet, you can visit their
+[website](http://mininet.org/).
+
+## Tips
+
+### Alternative to using VNC for Linux and OS X users
+
+If you are running some kind of Linux (or BSD) operating system, using SSH X
+forwarding is an alternative to using the VNC setup for getting the per-host
+xterms.
+
+Simply invoke SSH with the -Y option:
+
+    
+    
+    $ ssh -Y debian@yourvm
+    
+    debian@yourvm:~$ sudo mn --custom obligtopology.py --topo oblig --link tc -x
+
+This also works on OS X, but you will need to install an X server (XQuartz)
+manually, from for instance MacPorts or Homebrew.
+
+Note that it may take a short while before the xterms appear, and if your
+network latency is high the xterms might appear a bit "laggy".
+
+Thanks to Francis Augusto Medeiros-Logeay for pointing this out.
