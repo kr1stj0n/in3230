@@ -1,0 +1,275 @@
+#  Home exam 1
+
+# IN3230/4230 - Home Exam 1 - Fall 2020  
+Routing
+
+## Formally
+
+This assignment will count towards your final grade and must be solved
+individually.  
+Your submission will be marked with respect to how well you have fulfilled the
+requirements listed in the "Task" section.
+
+## Task
+
+In home exam 1 we will extend the network stack we started building in the
+mandatory assignment. The primary task in this assignment is to finish the MIP
+network layer by implementing routing and forwarding facilities.
+
+We will continue using _mininet_ to emulate the link layer network, this time
+with a larger topology (see the handouts section below).
+
+You will need to extend the _MIP daemon_ you started to implement in the
+mandatory assignment and write a _routing daemon_ which will handle running
+the routing protocol and maintaining a routing table.
+
+Again, you will need to write a brief _design document_ documenting your
+design choices and implementation. You will also need to answer a few
+theoretical questions.
+
+### MIP daemon extensions
+
+As before, the MIP daemon implements the network layer functionality in our
+network stack. You will need to complete it with routing and forwarding
+features, which will enable communication between MIP nodes which are
+connected indirectly, through intermediate systems (other MIP nodes).
+
+#### Additional MIP daemon components
+
+The components you developed in the mandatory assignment should not require
+significant modifications.
+
+You will need to extend your implementation with two additional components:
+
+  * An interface with a routing daemon, which runs the actual routing protocol and maintains the node's routing table.  
+One necessary change to the existing higher-layer interface is that it needs
+to be possible to specify the TTL of outgoing messages.
+
+  * A forwarding engine, which is able to relay MIP datagrams intended for other reachable hosts by querying the routing daemon for an outgoing path.
+
+When combined with the components from the mandatory assignment, these
+components should result in a fully featured, albeit simple, network layer. It
+should be possible to communicate with MIP hosts located any number of hops
+away.
+
+#### Implementation details
+
+As in the mandatory assignment, the MIP daemon listens on a raw socket to
+interface with the link layer and on a UNIX domain socket to interface with
+higher layers.
+
+The protocol for communicating with upper layers is amended as follows
+(changes highlighted in bold):
+
+  * Whenever there is an SDU to be passed either up or down, this is sent as a message over the UNIX socket.
+  * The message format consists of: An 8 bit MIP address, which is either the sender or destination address when passing up/down, respectively. **An 8 bit TTL value specifying the time to live of the message. A value of 0 (zero) indicates that the MIP daemon should use a default value.** The rest of the message contains the payload (SDU).
+  * In this assignment, it is **possible** to use blocking socket calls when dealing with this interface socket **as long as one takes care to use a mechanism such as _epoll_ to avoid deadlocking between sending and reading calls. Alternatively, one may use non-blocking sockets.** We **will need to** support multiple upper layer processes **(applications and the routing daemon).**
+  * **The UNIX domain socket must use the _SOCK_SEQPACKET_ socket type. This provides connection-oriented datagram semantics over the socket.  
+See _[unix(7)](https://manpages.debian.org/buster/manpages/unix.7.en.html)_.**
+
+  * **The MIP daemon listens on the UNIX socket, upper layer entities connect to it.  
+Upon initially connecting, the upper layer entity identifies itself with a
+single message containing the SDU type identifier it handles (8 bits, but
+recall that values are restricted to the range [0,7]).**
+
+The forwarding engine simply checks the TTL and destination address of
+incoming MIP datagrams and decides how to handle them:
+
+  1. If the destination address is that of the local host, pass the SDU to the appropriate higher layer entity based on the SDU type.  
+No further processing.
+
+  2. When the destination address is not local, the forwarding routine continues:
+  3. The TTL value is decremented by one. Should the new value be zero, the datagram must be discarded without further processing.
+  4. If the routing daemon is able to return a route to the destination host from its routing table, forward the PDU to the returned next hop. The updated TTL value must be set in the PDU header.  
+If no route is found, discard the datagram.
+
+The forwarding engine **must not block** the execution flow in the MIP daemon
+while waiting for route lookup responses. This entails that it must, for
+example, be possible to send an outgoing MIP broadcast datagram at the same
+time as the routing lookup is in progress.
+
+### Routing daemon
+
+The routing daemon performs two functions: running the routing protocol and
+answering route queries.
+
+#### Routing protocol
+
+The routing protocol allows each host in a MIP network to discover other nodes
+in the network and build a routing table containing routes for reaching other
+nodes.
+
+No configuration or other static information shall be necessary to start the
+routing process. The protocol is to be completely dynamic.
+
+You will implement the [Distance Vector
+Routing](https://en.wikipedia.org/wiki/Distance-vector_routing_protocol) (DVR)
+scheme, with [Poisoned
+Reverse](https://en.wikipedia.org/wiki/Split_horizon_route_advertisement#Poison_Reverse)
+loop protection.
+
+#### Routing protocol implementation details
+
+The exact specification and implementation of the DVR protocol is up to you.
+You must take care to adequately document it in your design document. It is
+important that you specify both how the routing process runs and the message
+formats.
+
+The routing daemon interfaces with the MIP daemon just like any other upper
+layer entity (see above).
+
+The SDU type of the routing protocol is **0x04**.
+
+You will need at least the following message types:
+
+  * A _HELLO_ message for discovering neighbouring nodes.
+  * An _UPDATE_ message to advertise the routes in your routing table.
+  * A _REQUEST_ message for intra-host route lookups. This message is fully specified in the next section.
+  * A _RESPONSE_ message for intra-host route responses. This message is fully specified in the next section.
+
+#### Routing lookup implementation details
+
+The message format of the _REQUEST_ message, used for routing queries (from
+the MIP daemon to the routing daemon) is as follows:
+
+    
+    
+    <MIP address of the host itself (8 bits)> <zero (0) TTL (8 bits)> <R (0x52, 8 bits)> <E (0x45, 8 bits)> <Q (0x51, 8 bits)> <MIP address to look up (8 bits)>
+
+The routing daemon must answer queries **strictly** in the order they are
+received, with a _RESPONSE_ message with the following format:
+
+    
+    
+    <MIP address of the host itself (8 bits)> <zero (0) TTL (8 bits)> <R (0x52, 8 bits)> <S (0x53, 8 bits)> <P (0x50, 8 bits)> <next hop MIP address (8 bits)>
+
+To indicate a lookup failure (no known route to the requested host), the
+routing daemon will respond with a next hop address of **255**.
+
+### Ping applications
+
+The only change which should be necessary in the application code from the
+mandatory assignment is conforming to the updated interface between the MIP
+daemon and higher layers described above.
+
+## Handouts
+
+You shall test your solution using the _h1_ mininet topology configuration as
+defined
+[here](/studier/emner/matnat/ifi/IN3230/h20/hjemmeeksamen-1/h1topology.py).
+
+![Topology
+illustration](/studier/emner/matnat/ifi/IN3230/h20/hjemmeeksamen-1/topology.png)
+Test topology - MIP addresses indicated in red
+
+It must be possible to perform ping measurements between **MIP address 10**
+and **MIP address 50**.
+
+## Development and test environment
+
+You will develop and test your implementation on a virtual machine image that
+we provide. The virtual machine will be hosted on the NREC cloud
+infrastructure, for detailed information and instructions on using the virtual
+machine platform, [see
+here](/studier/emner/matnat/ifi/IN3230/h20/oblig/running-your-vm-on-
+nrec.html).
+
+**Please do not attempt to solve the assignment locally on your own machine or
+in any way which deviates from these instructions.**
+
+## Submission materials
+
+You must submit the following:
+
+  1. A _design document_ that contains: 
+    * A cover page bearing your _candidate number_ , the title of the document, the course code and the semester. **_You must not indicate your name or username anywhere in your submission!_**
+    * A flow chart summarizing the flow of execution of the updated MIP daemon as well as the routing daemon.
+    * A concise specification of the routing protocol you have devised. Include descriptions of both the behaviour and message formats.
+    * Detailed answers to the following questions: 
+      * Describe the "Count-to-Infinity" problem in DVR protocols. How do you handle this problem in your own implementation?
+      * What is the limitation of Split Horizon? How does Poison reverse solve this issue?
+  2. _Program code_ , where the code is well commented. Document all the variables and definitions. For each function in the program, you must document the following: Example comment: 
+    
+        /**
+     * Convert string to all-uppercase
+     * str: pointer to input string.
+     * dest: pointer to output buffer.
+     * The buffer pointed at by dest must be allocated
+     * and large enough to hold all of str.
+     *
+     * Returns the number of characters changed.
+     */
+    int to_upper(char *str, char **dest)
+    { ...
+
+    * What the function does.
+    * What input and output parameters mean and how they are used.
+    * Which global variables affect the function.
+    * What the function returns.
+    * Other characteristics that are important to know about (e.g. error situations).
+
+## Submission requirements
+
+The **design document** edited using an appropriate tool, eg. LaTeX, Word,
+etc. The document should contain the items listed above.
+
+Before delivery, the document shall be converted to **PDF format**. Neither a
+Word / Works / Open Office / TeX - document nor a regular editor file (plain
+text) will be accepted.
+
+The **code** must consist of compilable C source files. We recommend including
+a Makefile for easy compilation.
+
+Your solution must compile and run on the provided virtual machine image,
+without requiring additional configuration.
+
+The scope of the design document need not necessarily be large, but must
+contain sufficient information to meet the requirements described under
+‘submission materials’. The important thing is to document understanding of
+the relevant topics, in addition to the actual implementation.
+
+### Electronic submission
+
+All materials must be submitted electronically where all files (Makefile, *
+.c, * .h, readme.pdf, etc.) are collected in one directory using your
+**candidate number** as a filename. Create one compressed tar-ball containing
+that directory. Use the command:
+
+    
+    
+    tar -zcv --owner=nobody --group=nobody -f candidate_no.tgz candidate_no
+    
+
+Please note that Inspera has issues with filenames containing more than a
+single period ("."), avoid naming your file in such a way.
+
+Exams at UiO are **anonymously** graded. It is your responsibility to ensure
+that no part of your submission contains any identifying information such as
+your name, username and so on.
+
+Your exam solution must be submitted through the
+[Inspera](https://uio.inspera.no/) exam system.
+
+We recommend that you confirm that the archive you uploaded contains what it
+should by downloading it and unpacking it again after submission. If you
+deliver the wrong files, there is nothing we can do about it when we process
+your delivery. We also recommend you upload draft versions as you work, to
+ensure you have a deliverable in the system should you experience last minute
+technical difficulties etc.
+
+### Deadline
+
+The deadline for submitting this exam is **Wednesday October 14 2020 at 23:59
+Oslo local time**.
+
+This is an absolute deadline, failure to deliver on time will result in the
+grade F for this part-exam.
+
+The course management is not able to handle any enquiries regarding medical
+extensions and so forth, you must contact the study administration directly.
+
+You are expected to strictly comply with the [rules governing studies and
+exams at the University of
+Oslo](http://www.uio.no/om/regelverk/studier/studier-eksamener/).
+
+Publisert 16\. sep. 2020 15:16  \- Sist endret 16\. sep. 2020 15:16
