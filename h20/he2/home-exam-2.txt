@@ -1,0 +1,287 @@
+[ IN3230 - Høst 2020 ](/studier/emner/matnat/ifi/IN3230/h20/)
+
+#  Home exam 2
+
+# IN4230 - Home Exam 2 - Fall 2020  
+Routing
+
+## Formally
+
+This assignment will count towards your final grade and must be solved
+individually.  
+Your submission will be marked with respect to how well you have fulfilled the
+requirements listed in the "Task" section.
+
+## Task
+
+The goal of this assignment is to extend our network stack with a transport
+layer protocol which we will denominate the MIP Transport Protocol (MIPTP).
+MIPTP provides the following two services to its upper layer:
+
+  * Reliable, in-order data transmission
+  * Application multiplexing, the ability to run multiple applications on a single host
+
+In order to achieve this goal, you will need to implement the transport layer
+in the form of a **MIPTP daemon** , much in the same vein as we implemented
+routing. Additionally, you will implement **a file transfer server and
+corresponding client** to make use of and to test the transport layer.
+
+As in the earlier assignments, you will need to document your work in a
+**design document**.
+
+You should not need to make further modifications to the MIP daemon from home
+exam 1, provided you have implemented it as specified.
+
+### Implementation details
+
+The following sections specify how the aforementioned components should work
+in more detail
+
+#### MIPTP daemon
+
+The MIPTP daemon behaves like any other entity residing directly above the MIP
+network layer. The interface to communicate with the MIP daemon is as
+specified in home exam 1.
+
+The SDU type of MIPTP is **0x05**.
+
+##### Upper layer interface
+
+To communicate with entities residing above the transport layer (i.e.
+applications), the following interface and protocol applies:
+
+  1. The application connects to a UNIX domain socket listened to by the MIPTP daemon.
+  2. Upon succesfully connecting, the application identifies its **port number** by sending a  one byte message containing only the port number.
+  3. Upon receipt of the port number, the application either becomes active in the MIPTP if that port number is free or, in case it is already in use by another application, the MIPTP will immediately close the connection.
+  4. If the connection remains open, the application may begin to send its PDUs as messages over the connected socket. Conversely, the MIPTP can send incoming MIPTP PDUs in the other direction.
+
+When exchanging PDUs over this interface, there needs to be some way of
+identifying where messages are destined to/arrived from. To this end, the
+application PDUs (recall that the PDUs at layer _n_ are SDUs at layer _n - 1_
+) must be prepended with the following header:
+
+MIP address (source or destination depending on direction) |
+Source/destination port number  
+---|---  
+8 bits | 8 bits  
+  
+Unlike the MIP daemon's upper interface, applications **do not** need to take
+care to align PDU lengths to 32 bit boundaries. The MIPTP daemon must use
+padding where necessary to conform to the requirements of the MIP/MIPTP
+interface.
+
+##### MIPTP protocol
+
+In this section we will describe the protocol used to communicate between
+nodes running MIPTP.
+
+MIPTP provides what one might classify as a connection-oriented, reliable and
+in-order datagram transfer service, however we will **not** implement
+synchronization between endpoints at the start of a transfer (which would be
+equivalent to the three-way handshake in TCP). This could lead to some issues
+related to overlapping transfers between the same host and port pairs, but we
+will not rigorously attempt to prevent these in this assignment.
+
+MIPTP PDUs have the following format:
+
+Source port | Destination port | Sequence number | Padding length | SDU |
+Padding  
+---|---|---|---|---|---  
+8 bits | 8 bits | 14 bits, network byte order | 2 bits | Variable | Up to 3
+bytes  
+  
+The source and destination ports, when combined with the MIP address at the
+network layer, identify the connection end points.
+
+The sequence number serves two purposes:
+
+  * Ordering of SDUs despite possible network reordering of MIP datagrams.
+  * Loss detection and recovery should the network drop datagrams.
+
+To mitigate the aforementioned issues concerning overlapping transfers, the
+initial sequence number set when an application connects to the MIPTP daemon
+should be set to **a random value**. Incoming PDUs with sequence numbers lying
+outside the retransmission window (details below) are to be discarded.
+
+Padding is used to ensure compliance with the MIP network layer's requirement
+that MIP SDUs (i.e. MIPTP PDUs) must have a 32-bit aligned length. In case the
+combination of the MIPTP header and SDU does not align to a 32-bit boundary,
+up to 3 bytes (value zero) are appended to the end of the SDU, and the number
+of such padding bytes is encoded in the padding length field.
+
+##### Reliable and ordered delivery
+
+As mentioned above, the sequence numbers of MIPTP PDUs enable us to provide
+the reliability and orderedness properties of the MIPTP transport layer.
+
+In-order delivery is implemented by simply never passing up an SDU that did
+not arrive in sequence with respect to the sequence numbering.
+
+MIPTP sequence numbers denote the order of MIPTP PDUs, and are simply
+incremented by one for each subsequent PDU. Be mindful that you need to take
+into account **sequence number rollover** , which occurs when you surpass the
+largest value encodable as a 14-bit integer.
+
+To achieve reliability, you will implement a simple form of an Automatic
+repeat ReQuest (ARQ) protocol using the **Go Back N strategy** , with a fixed
+sliding window size of 16 packets. This window size is also used to discard
+errant packets as described in the previous section.
+
+When transmitting outgoing PDUs, the MIPTP daemon must keep a buffer of length
+equal to the window size to hold recently sent PDUs. This allows lost or
+reordered PDUs to be retransmitted when necessary. If this buffer is full, the
+MIPTP must somehow queue additional SDUs before being allowed to transmit
+them. If that queue also grows too large, the MIPTP daemon may terminate the
+connection to the upper layer.
+
+Whenever the MIPTP daemon receives a PDU in the correct sequence, it will
+**ACKnowledge (ACK)** this to the sender by transmitting a MIPTP PDU with no
+payload content and sequence number equal to the received PDU's sequence
+number. Note that this implies that applications may never transmit empty
+SDUs.
+
+Upon receiving a valid ACK (with respect to sequencing), the sending MIPTP
+daemon can advance its window and drop the corresponding PDU from its buffer,
+allowing a new PDU to be transmitted.
+
+If the sending MIPTP does not receive an ACK within a user-specified timeout
+period, it will automatically retransmit the concerned PDU and reset the
+timeout.
+
+**BONUS TASK:** The Go Back N strategy is simple to implement, but highly
+inefficient even in the presence of very minor losses and reordering. If you
+extend your solution by implementing the more advanced Selective Repeat
+strategy, you will be rewarded with bonus points.
+
+### File transfer applications
+
+The file transfer applications are very simple.
+
+The client shall take command line arguments indicating the file to transmit,
+the MIP address and port number of the destination server as well as the path
+to the MIPTP daemon's upper layer interface socket. It picks a random port
+number for itself and should draw a new port number up to 3 times should the
+MIPTP daemon reject the port number.
+
+File transfers begin with a message containing the length of the file about to
+be transmitted, encoded in a 32-bit unsigned integer in network byte order.
+Then the file contents is sent in 1400 byte chunks.
+
+The server shall take command line arguments indicating the port number it is
+to listen on, the path to the MIPTP daemon's upper layer interface socket as
+well as a directory where it is to place incoming files.
+
+Whenever the server sees a new transfer begin (new source address and port
+combination) it starts writing the incoming file to the specified directory
+with a name of the form: _incoming_ <source address>_<source_port>_. The
+server must persist until stopped by the user and be able to receive multiple
+transfers at the same time, including from the same source host.
+
+## Development and test environment
+
+You will develop and test your implementation on a virtual machine image that
+we provide. The virtual machine will be hosted on the NREC cloud
+infrastructure, for detailed information and instructions on using the virtual
+machine platform, [see
+here](/studier/emner/matnat/ifi/IN3230/h20/oblig/running-your-vm-on-
+nrec.html).
+
+**Please do not attempt to solve the assignment locally on your own machine or
+in any way which deviates from these instructions.**
+
+## Submission materials
+
+You must submit the following:
+
+  1. A _design document_ that contains: 
+    * A cover page bearing your _candidate number_ , the title of the document, the course code and the semester. **_You must not indicate your name or username anywhere in your submission!_**
+    * A flow chart summarizing the flow of execution of the MIPTP daemon combined with the application processes.
+    * Detailed answers to the following questions: 
+      * In the description of the MIPTP protocol we outline that there could be problems with overlapping problems due to not synchronizing the endpoints. Briefly explain the role of connection synchronization and sketch possible solutions to this problem.
+      * Briefly explain how a reasonable retransmission timeout value could be automatically computed instead of being preset.
+      * Suggest and describe some other possible mechanisms that would make sense to add to the network layer.
+  2. _Program code_ , where the code is well commented. Document all the variables and definitions. For each function in the program, you must document the following: Example comment: 
+    
+        /**
+     * Convert string to all-uppercase
+     * str: pointer to input string.
+     * dest: pointer to output buffer.
+     * The buffer pointed at by dest must be allocated
+     * and large enough to hold all of str.
+     *
+     * Returns the number of characters changed.
+     */
+    int to_upper(char *str, char **dest)
+    { ...
+
+    * What the function does.
+    * What input and output parameters mean and how they are used.
+    * Which global variables affect the function.
+    * What the function returns.
+    * Other characteristics that are important to know about (e.g. error situations).
+
+## Submission requirements
+
+The **design document** edited using an appropriate tool, eg. LaTeX, Word,
+etc. The document should contain the items listed above.
+
+Before delivery, the document shall be converted to **PDF format**. Neither a
+Word / Works / Open Office / TeX - document nor a regular editor file (plain
+text) will be accepted.
+
+The **code** must consist of compilable C source files. We recommend including
+a Makefile for easy compilation.
+
+Your solution must compile and run on the provided virtual machine image,
+without requiring additional configuration.
+
+The scope of the design document need not necessarily be large, but must
+contain sufficient information to meet the requirements described under
+‘submission materials’. The important thing is to document understanding of
+the relevant topics, in addition to the actual implementation.
+
+### Electronic submission
+
+All materials must be submitted electronically where all files (Makefile, *
+.c, * .h, readme.pdf, etc.) are collected in one directory using your
+**candidate number** as a filename. Create one compressed tar-ball containing
+that directory. Use the command:
+
+    
+    
+    tar -zcv --owner=nobody --group=nobody -f candidate_no.tgz candidate_no
+    
+
+Please note that Inspera has issues with filenames containing more than a
+single period ("."), avoid naming your file in such a way.
+
+Exams at UiO are **anonymously** graded. It is your responsibility to ensure
+that no part of your submission contains any identifying information such as
+your name, username and so on.
+
+Your exam solution must be submitted through the
+[Inspera](https://uio.inspera.no/) exam system.
+
+We recommend that you confirm that the archive you uploaded contains what it
+should by downloading it and unpacking it again after submission. If you
+deliver the wrong files, there is nothing we can do about it when we process
+your delivery. We also recommend you upload draft versions as you work, to
+ensure you have a deliverable in the system should you experience last minute
+technical difficulties etc.
+
+### Deadline
+
+The deadline for submitting this exam is **Wednesday November 4 2020 at 23:59
+Oslo local time**.
+
+This is an absolute deadline, failure to deliver on time will result in the
+grade F for this part-exam.
+
+The course management is not able to handle any enquiries regarding medical
+extensions and so forth, you must contact the study administration directly.
+
+You are expected to strictly comply with the [rules governing studies and
+exams at the University of
+Oslo](http://www.uio.no/om/regelverk/studier/studier-eksamener/).
+
+Publisert 14\. okt. 2020 15:11  \- Sist endret 14\. okt. 2020 15:11
